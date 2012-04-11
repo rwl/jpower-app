@@ -15,18 +15,32 @@
  */
 package com.ncond.jpower.app;
 
+import java.util.List;
+
 import com.vaadin.Application;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 
-public class JPowerApplication extends Application implements ValueChangeListener {
+public class JPowerApplication extends Application implements
+		ValueChangeListener, ClickListener {
 
 	private static final long serialVersionUID = -5582875605614621365L;
 
-	private Window window;
+	private final Button options = new Button("Options");
+
+	private VerticalLayout view = null;
+	private OptionsForm optionsForm = null;
 
 	private CaseTable caseTable = null;
 
@@ -34,9 +48,37 @@ public class JPowerApplication extends Application implements ValueChangeListene
 
 	@Override
 	public void init() {
-		window = new Window("JPower Application");
-		setMainWindow(window);
+		buildMainLayout();
 		setMainComponent(getCaseTable());
+	}
+
+	private void buildMainLayout() {
+		setMainWindow(new Window("JPower"));
+
+		VerticalLayout master = new VerticalLayout();
+		master.setSizeFull();
+
+		view = new VerticalLayout();
+		master.addComponent(view);
+		master.setComponentAlignment(view, Alignment.TOP_CENTER);
+
+		view.setWidth("600px");
+
+		view.addComponent(createToolbar());
+
+	        getMainWindow().setContent(master);
+	}
+
+	private HorizontalLayout createToolbar() {
+		HorizontalLayout bar = new HorizontalLayout();
+		bar.addComponent(new Label("JPOWER"));
+
+		bar.addComponent(options);
+		bar.setComponentAlignment(options, Alignment.MIDDLE_RIGHT);
+		options.addListener((ClickListener) this);
+
+		bar.setWidth("100%");
+		return bar;
 	}
 
 	private CaseTable getCaseTable() {
@@ -46,7 +88,37 @@ public class JPowerApplication extends Application implements ValueChangeListene
 	}
 
 	private void setMainComponent(Component c) {
-		window.addComponent(c);
+		if (view.getComponentCount() == 1) {
+			view.addComponent(c, 1);
+		} else {
+			view.replaceComponent(view.getComponent(1), c);
+		}
+	}
+
+	public void buttonClick(ClickEvent event) {
+		final Button source = event.getButton();
+
+		if (source == options) {
+			showOptionsWindow();
+		}
+	}
+
+	private void showOptionsWindow() {
+		getMainWindow().addWindow(getOptionsWindow());
+	}
+
+	private Window getOptionsWindow() {
+		if (optionsForm == null) {
+			optionsForm = new OptionsForm(this);
+		}
+		final Window dialog = new Window("Options");
+		dialog.addComponent(optionsForm);
+		dialog.setModal(true);
+
+		Object ID = dbHelp.getOptionsContainer().getIdByIndex(0);
+		optionsForm.setItemDataSource(dbHelp.getOptionsContainer().getItem(ID));
+
+		return dialog;
 	}
 
 	public DatabaseHelper getDbHelp() {
@@ -55,9 +127,9 @@ public class JPowerApplication extends Application implements ValueChangeListene
 
 	public void valueChange(ValueChangeEvent event) {
 		Property property = event.getProperty();
-	        if (property == caseTable) {
-	        	//
-	        }
+		if (property == caseTable) {
+			//
+		}
 	}
 
 }

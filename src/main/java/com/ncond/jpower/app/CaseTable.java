@@ -14,8 +14,8 @@ public class CaseTable extends Table {
 	        setImmediate(true);
 	        addListener((ValueChangeListener) app);
 
-	        setVisibleColumns(DatabaseHelper.NATURAL_COL_ORDER);
-	        setColumnHeaders(DatabaseHelper.COL_HEADERS_ENGLISH);
+	        setVisibleColumns(DatabaseHelper.NATURAL_COL_ORDER_JPC);
+	        setColumnHeaders(DatabaseHelper.COL_HEADERS_ENGLISH_JPC);
 	}
 
 }

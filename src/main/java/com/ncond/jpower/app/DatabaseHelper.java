@@ -15,14 +15,21 @@ public class DatabaseHelper implements Serializable {
 
 	private static final long serialVersionUID = -5220381127164418511L;
 
-	public static final Object[] NATURAL_COL_ORDER = new Object[] {
+	public static final Object[] NATURAL_COL_ORDER_JPC = new Object[] {
 		"NAME", "DESCRIPTION"};
 
-	public static final String[] COL_HEADERS_ENGLISH = new String[] {
+	public static final String[] COL_HEADERS_ENGLISH_JPC = new String[] {
 		"Name", "Description"};
+
+	public static final Object[] NATURAL_COL_ORDER_OPT = new Object[] {
+		"ALG", "ITERMAX", "PFDC"};
+
+	public static final String[] COL_HEADERS_ENGLISH_OPT = new String[] {
+		"Algorithm", "Max Iter", "DC"};
 
 	private JDBCConnectionPool connectionPool = null;
 	private SQLContainer caseContainer = null;
+	private SQLContainer optionsContainer = null;
 
 	public DatabaseHelper() {
 		initConnectionPool();
@@ -48,6 +55,7 @@ public class DatabaseHelper implements Serializable {
 			Statement statement = conn.createStatement();
 			try {
 				statement.executeQuery("SELECT * FROM JPC");
+				statement.executeQuery("SELECT * FROM JPOPT");
 			} catch (SQLException e) {
 				/*
 				 * Failed, which means that the database is not
@@ -55,6 +63,9 @@ public class DatabaseHelper implements Serializable {
 				 */
 				statement.execute("create table jpc (id integer generated always as identity, name varchar(64), description varchar(64), version integer default 0 not null)");
 				statement.execute("alter table jpc add primary key (id)");
+
+				statement.execute("create table jpopt (id integer generated always as identity, alg integer default 1, itermax int default 10, pfdc boolean default false, version integer default 0 not null)");
+				statement.execute("alter table jpopt add primary key (id)");
 			}
 			statement.close();
 			conn.commit();
@@ -66,10 +77,15 @@ public class DatabaseHelper implements Serializable {
 
 	private void initContainers() {
 		try {
-			/* TableQuery and SQLContainer for JPC -table */
+			/* TableQuery and SQLContainer for case table */
 			TableQuery q1 = new TableQuery("jpc", connectionPool);
 			q1.setVersionColumn("VERSION");
 			caseContainer = new SQLContainer(q1);
+
+			/* TableQuery and SQLContainer for options */
+			TableQuery q2 = new TableQuery("jpopt", connectionPool);
+			q2.setVersionColumn("VERSION");
+			optionsContainer = new SQLContainer(q2);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -77,7 +93,7 @@ public class DatabaseHelper implements Serializable {
 	}
 
 	private void fillContainers() {
-		if (caseContainer.size() == 0 && caseContainer.size() == 0) {
+		if (caseContainer.size() == 0) {
 
 			final String cases[] = { "case4gs", "case6ww", "case9",
 					"case24_ieee_rts", "case30", "case57",
@@ -93,10 +109,18 @@ public class DatabaseHelper implements Serializable {
 				e.printStackTrace();
 			}
 		}
+
+		if (optionsContainer.size() == 0) {
+			Object id = optionsContainer.addItem();
+		}
 	}
 
 	public SQLContainer getCaseContainer() {
 		return caseContainer;
+	}
+
+	public SQLContainer getOptionsContainer() {
+		return optionsContainer;
 	}
 
 }
